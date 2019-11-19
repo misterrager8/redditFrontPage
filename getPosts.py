@@ -15,7 +15,9 @@ def viewPosts():
                submission.subreddit.display_name,
                submission.url,
                submission.id,
-               submission.subreddit.display_name]
+               submission.subreddit.display_name,
+               submission.created_utc
+              ]
     results.append(current)
     
   with open("hotPosts.csv", "w", newline="") as f:

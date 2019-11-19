@@ -6,7 +6,8 @@ import webbrowser
 from post import post
 import subprocess
 from java.text import SimpleDateFormat
-from java.util import Calendar
+from java.util import *
+from datetime import datetime
 
 mouseLoc = []
 postList = []
@@ -139,13 +140,16 @@ class mainWindow(JFrame):
                            i[1],
                            i[2],
                            i[3],
-                           i[4]
+                           i[4],
+                           i[5]
                           ))
       
     for x in postList:
-      self.postTable.getModel().addRow([x.title, x.sub])
+      parsed_date = datetime.utcfromtimestamp(float(x.timePosted))
+      b = parsed_date.strftime("%I:%M %p")
+      self.postTable.getModel().addRow([x.title + " - " + b, x.sub])
       
-    self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a").format(Calendar.getInstance().getTime()))
+    self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
     
   def exitButtonMouseClicked(self, evt):
     sys.exit()
@@ -193,13 +197,15 @@ class mainWindow(JFrame):
                            i[1],
                            i[2],
                            i[3],
-                           i[4]
+                           i[4],
+                           i[5]
                           ))
 
     self.postTable.getModel().setRowCount(0)
 
     for x in postList:
-      self.postTable.getModel().addRow([x.title, x.sub])
+      b = parsed_date.strftime("%I:%M %p")
+      self.postTable.getModel().addRow([x.title + " - " + b, x.sub])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a").format(Calendar.getInstance().getTime()))
       
