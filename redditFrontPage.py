@@ -8,9 +8,19 @@ import subprocess
 from java.text import SimpleDateFormat
 from java.util import *
 from datetime import datetime
+from javax.swing.table import *
 
 mouseLoc = []
 postList = []
+
+class dtm(DefaultTableModel):
+  def __init__(self):
+    head = "Post Title,Sub".split( "," )
+    self.data = []
+    DefaultTableModel.__init__(self, self.data, head)
+    
+  def isCellEditable(self, row, col):
+    return False
 
 class mainWindow(JFrame):
   def __init__(self):
@@ -49,12 +59,10 @@ class mainWindow(JFrame):
     self.exitButton.setText("X")
     self.exitButton.setCursor(Cursor(Cursor.HAND_CURSOR))
 
-    self.postTable.setModel(table.DefaultTableModel(
-      [],
-      ["Post Title", "Sub"]
-    ))
+    self.postTable.setAutoCreateRowSorter(True)
+    self.postTable.setModel(dtm())
     
-    self.postTable.getColumnModel().getColumn(0).setPreferredWidth(550)
+    self.postTable.getColumnModel().getColumn(0).setPreferredWidth(600)
     self.postTable.getColumnModel().getColumn(1).setPreferredWidth(40)
     
     self.jScrollPane2.setViewportView(self.postTable)
@@ -145,9 +153,9 @@ class mainWindow(JFrame):
                           ))
       
     for x in postList:
-      parsed_date = datetime.utcfromtimestamp(float(x.timePosted))
-      b = parsed_date.strftime("%I:%M %p")
-      self.postTable.getModel().addRow([x.title + " - " + b, x.sub])
+      dt = datetime.utcfromtimestamp(float(x.timePosted))
+      postTime = x.title + " (" + self.pretty_date(dt) + ")"
+      self.postTable.getModel().addRow([postTime, x.sub])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
     
@@ -204,8 +212,9 @@ class mainWindow(JFrame):
     self.postTable.getModel().setRowCount(0)
 
     for x in postList:
-      b = parsed_date.strftime("%I:%M %p")
-      self.postTable.getModel().addRow([x.title + " - " + b, x.sub])
+      dt = datetime.utcfromtimestamp(float(x.timePosted))
+      postTime = x.title + " (" + self.pretty_date(dt) + ")"
+      self.postTable.getModel().addRow([postTime, x.sub])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a").format(Calendar.getInstance().getTime()))
       
@@ -223,6 +232,44 @@ class mainWindow(JFrame):
   def openButtonMouseClicked(self, evt):
     postLink = postList[self.postTable.getSelectedRow()].link
     webbrowser.open(postLink)
+    
+
+  def pretty_date(self, time=False):
+    now = datetime.utcnow()
+    if type(time) is int:
+      diff = now - datetime.fromtimestamp(time)
+    elif isinstance(time,datetime):
+      diff = now - time
+    elif not time:
+      diff = now - now
+    second_diff = diff.seconds
+    day_diff = diff.days
+
+    if day_diff < 0:
+      return ""
+
+    if day_diff == 0:
+      if second_diff < 10:
+        return "just now"
+      if second_diff < 60:
+        return str(second_diff) + " seconds ago"
+      if second_diff < 120:
+        return "a minute ago"
+      if second_diff < 3600:
+        return str(second_diff / 60) + " minutes ago"
+      if second_diff < 7200:
+        return "an hour ago"
+      if second_diff < 86400:
+        return str(second_diff / 3600) + " hours ago"
+    if day_diff == 1:
+      return "Yesterday"
+    if day_diff < 7:
+      return str(day_diff) + " days ago"
+    if day_diff < 31:
+      return str(day_diff / 7) + " weeks ago"
+    if day_diff < 365:
+      return str(day_diff / 30) + " months ago"
+    return str(day_diff / 365) + " years ago"
     
 if __name__ == "__main__":
   print("Collecting posts...")

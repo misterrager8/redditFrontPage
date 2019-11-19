@@ -11,7 +11,7 @@ results = []
 
 def viewPosts():
   for submission in reddit.front.hot(limit=50):
-    current = [submission.title,
+    current = [submission.title[:75],
                submission.subreddit.display_name,
                submission.url,
                submission.id,
