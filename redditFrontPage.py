@@ -26,6 +26,7 @@ class mainWindow(JFrame):
   def __init__(self):
     super(mainWindow, self).__init__()
     self.initComponents()
+    self.refreshPosts()
     
   def initComponents(self):
     self.bgPanel = JPanel(mousePressed = self.bgPanelMousePressed,
@@ -136,26 +137,6 @@ class mainWindow(JFrame):
     self.pack()
     self.setLocationRelativeTo(None)
     
-    with open("hotPosts.csv", "r") as f:
-      reader = csv.reader(f)
-      lis = list(reader)
-      
-    for i in lis:
-      postList.append(post(i[0],
-                           i[1],
-                           i[2],
-                           i[3],
-                           i[4],
-                           i[5]
-                          ))
-      
-    for x in postList:
-      dt = datetime.utcfromtimestamp(float(x.timePosted))
-      postTime = x.title + " (" + self.pretty_date(dt) + ")"
-      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
-      
-    self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
-    
   def exitButtonMouseClicked(self, evt):
     sys.exit()
   
@@ -185,7 +166,28 @@ class mainWindow(JFrame):
     self.refreshButton.setBorder(None)
     
   def refreshButtonMouseClicked(self, evt):
+    self.refreshPosts()
+      
+  def bgPanelMouseDragged(self, evt):
+    x = evt.getXOnScreen()
+    y = evt.getYOnScreen()
+
+    self.setLocation(x - mouseLoc[0], y - mouseLoc[1])
+      
+  def bgPanelMousePressed(self, evt):
+    del mouseLoc[:]
+    mouseLoc.append(evt.getX())
+    mouseLoc.append(evt.getY())
+    
+  def openButtonMouseClicked(self, evt):
+    pid = self.postTable.getValueAt(self.postTable.getSelectedRow(), 2)
+    postLink = self.findPost(pid).link
+    webbrowser.open(postLink)
+    
+  def refreshPosts(self):
+    print("Collecting posts...")
     subprocess.call("python3 getPosts.py", shell = True)
+    print("Done!")
 
     with open("hotPosts.csv", "r") as f:
       reader = csv.reader(f)
@@ -209,23 +211,7 @@ class mainWindow(JFrame):
       postTime = x.title + " (" + self.pretty_date(dt) + ")"
       self.postTable.getModel().addRow([postTime, x.sub, x.postID])
       
-    self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a").format(Calendar.getInstance().getTime()))
-      
-  def bgPanelMouseDragged(self, evt):
-    x = evt.getXOnScreen()
-    y = evt.getYOnScreen()
-
-    self.setLocation(x - mouseLoc[0], y - mouseLoc[1])
-      
-  def bgPanelMousePressed(self, evt):
-    del mouseLoc[:]
-    mouseLoc.append(evt.getX())
-    mouseLoc.append(evt.getY())
-    
-  def openButtonMouseClicked(self, evt):
-    pid = self.postTable.getValueAt(self.postTable.getSelectedRow(), 2)
-    postLink = self.findPost(pid).link
-    webbrowser.open(postLink)
+    self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
     
   def findPost(self, idPost):
     for n in postList:
@@ -270,8 +256,4 @@ class mainWindow(JFrame):
     return str(day_diff / 365) + " years ago"
     
 if __name__ == "__main__":
-  print("Collecting posts...")
-  subprocess.call("python3 getPosts.py", shell = True)
-  print("Done!")
-  
   mainWindow().setVisible(True)
