@@ -15,7 +15,7 @@ postList = []
 
 class dtm(DefaultTableModel):
   def __init__(self):
-    head = "Post Title,Sub".split( "," )
+    head = "Post Title,Sub,ID".split( "," )
     self.data = []
     DefaultTableModel.__init__(self, self.data, head)
     
@@ -41,9 +41,6 @@ class mainWindow(JFrame):
     self.openButton = JLabel(mouseEntered = self.openButtonMouseEntered,
                              mouseExited = self.openButtonMouseExited,
                              mouseClicked = self.openButtonMouseClicked
-                            )
-    self.unSaveButton = JLabel(mouseEntered = self.unSaveButtonMouseEntered,
-                               mouseExited = self.unSaveButtonMouseExited
                             )
     self.refreshButton = JLabel(mouseEntered = self.refreshButtonMouseEntered,
                                 mouseExited = self.refreshButtonMouseExited,
@@ -155,7 +152,7 @@ class mainWindow(JFrame):
     for x in postList:
       dt = datetime.utcfromtimestamp(float(x.timePosted))
       postTime = x.title + " (" + self.pretty_date(dt) + ")"
-      self.postTable.getModel().addRow([postTime, x.sub])
+      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
     
@@ -169,8 +166,10 @@ class mainWindow(JFrame):
     self.commentsButton.setBorder(None)
     
   def commentsButtonMouseClicked(self, evt):
-    pid = postList[self.postTable.getSelectedRow()].postID
-    sourceSub = postList[self.postTable.getSelectedRow()].subCode
+    pid = self.postTable.getValueAt(self.postTable.getSelectedRow(), 2)
+    selectedPost = self.findPost(pid)
+    
+    sourceSub = selectedPost.subCode
     webbrowser.open("https://www.reddit.com/r/" + sourceSub + "/comments/" + pid)
     
   def openButtonMouseEntered(self, evt):
@@ -178,12 +177,6 @@ class mainWindow(JFrame):
     
   def openButtonMouseExited(self, evt):
     self.openButton.setBorder(None)
-    
-  def unSaveButtonMouseEntered(self, evt):
-    self.unSaveButton.setBorder(border.LineBorder(Color.black))
-    
-  def unSaveButtonMouseExited(self, evt):
-    self.unSaveButton.setBorder(None)
     
   def refreshButtonMouseEntered(self, evt):
     self.refreshButton.setBorder(border.LineBorder(Color.black))
@@ -214,7 +207,7 @@ class mainWindow(JFrame):
     for x in postList:
       dt = datetime.utcfromtimestamp(float(x.timePosted))
       postTime = x.title + " (" + self.pretty_date(dt) + ")"
-      self.postTable.getModel().addRow([postTime, x.sub])
+      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a").format(Calendar.getInstance().getTime()))
       
@@ -230,10 +223,15 @@ class mainWindow(JFrame):
     mouseLoc.append(evt.getY())
     
   def openButtonMouseClicked(self, evt):
-    postLink = postList[self.postTable.getSelectedRow()].link
+    pid = self.postTable.getValueAt(self.postTable.getSelectedRow(), 2)
+    postLink = self.findPost(pid).link
     webbrowser.open(postLink)
     
-
+  def findPost(self, idPost):
+    for n in postList:
+      if n.postID == idPost:
+        return n
+    
   def pretty_date(self, time=False):
     now = datetime.utcnow()
     if type(time) is int:
