@@ -15,7 +15,7 @@ postList = []
 
 class dtm(DefaultTableModel):
   def __init__(self):
-    head = "Post Title,Sub,ID".split( "," )
+    head = "Post Title,Sub,ID".split(",")
     self.data = []
     DefaultTableModel.__init__(self, self.data, head)
     
@@ -30,24 +30,23 @@ class mainWindow(JFrame):
     
   def initComponents(self):
     self.bgPanel = JPanel(mousePressed = self.bgPanelMousePressed,
-                          mouseDragged = self.bgPanelMouseDragged
-                         )
+                          mouseDragged = self.bgPanelMouseDragged)
     self.exitButton = JLabel(mouseClicked = self.exitButtonMouseClicked)
     self.jScrollPane2 = JScrollPane()
     self.postTable = JTable()
     self.commentsButton = JLabel(mouseEntered = self.commentsButtonMouseEntered,
                                  mouseExited = self.commentsButtonMouseExited,
-                                 mouseClicked = self.commentsButtonMouseClicked
-                                )
+                                 mouseClicked = self.commentsButtonMouseClicked)
     self.openButton = JLabel(mouseEntered = self.openButtonMouseEntered,
                              mouseExited = self.openButtonMouseExited,
-                             mouseClicked = self.openButtonMouseClicked
-                            )
+                             mouseClicked = self.openButtonMouseClicked)
     self.refreshButton = JLabel(mouseEntered = self.refreshButtonMouseEntered,
                                 mouseExited = self.refreshButtonMouseExited,
-                                mouseClicked = self.refreshButtonMouseClicked
-                               )
+                                mouseClicked = self.refreshButtonMouseClicked)
     self.timeLabel = JLabel()
+    self.subButton = JLabel(mouseEntered = self.subButtonMouseEntered,
+                            mouseExited = self.subButtonMouseExited,
+                            mouseClicked = self.subButtonMouseClicked)
 
     self.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     self.setUndecorated(True)
@@ -82,6 +81,12 @@ class mainWindow(JFrame):
     self.refreshButton.setText("Refresh")
     self.refreshButton.setCursor(Cursor(Cursor.HAND_CURSOR))
     self.refreshButton.setOpaque(True)
+    
+    self.subButton.setBackground(Color(76, 174, 255))
+    self.subButton.setHorizontalAlignment(SwingConstants.CENTER)
+    self.subButton.setText("Open Sub Posts")
+    self.subButton.setCursor(Cursor(Cursor.HAND_CURSOR))
+    self.subButton.setOpaque(True)
 
     bgPanelLayout = GroupLayout(self.bgPanel)
     self.bgPanel.setLayout(bgPanelLayout)
@@ -96,6 +101,7 @@ class mainWindow(JFrame):
           .addComponent(self.jScrollPane2, GroupLayout.DEFAULT_SIZE, 785, sys.maxint)
           .addGroup(bgPanelLayout.createSequentialGroup()
             .addGroup(bgPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+              .addComponent(self.subButton, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint)
               .addComponent(self.openButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint)
               .addComponent(self.commentsButton, GroupLayout.DEFAULT_SIZE, 214, sys.maxint))
             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, sys.maxint)
@@ -103,8 +109,8 @@ class mainWindow(JFrame):
           .addGroup(bgPanelLayout.createSequentialGroup()
             .addComponent(self.timeLabel, GroupLayout.PREFERRED_SIZE, 295, GroupLayout.PREFERRED_SIZE)
             .addGap(0, 0, sys.maxint)))
-        .addContainerGap())
-    )
+        .addContainerGap()))
+    
     bgPanelLayout.setVerticalGroup(
       bgPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addGroup(bgPanelLayout.createSequentialGroup()
@@ -118,21 +124,21 @@ class mainWindow(JFrame):
           .addComponent(self.refreshButton, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(self.commentsButton, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
-        .addGap(70, 70, 70)
+        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(self.subButton, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+        .addGap(22, 22, 22)
         .addComponent(self.timeLabel, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
-        .addContainerGap())
-    )
+        .addContainerGap()))
 
     layout = GroupLayout(self.getContentPane())
     self.getContentPane().setLayout(layout)
     layout.setHorizontalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-      .addComponent(self.bgPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint)
-    )
+      .addComponent(self.bgPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint))
+    
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-      .addComponent(self.bgPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint)
-    )
+      .addComponent(self.bgPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, sys.maxint))
 
     self.pack()
     self.setLocationRelativeTo(None)
@@ -165,8 +171,41 @@ class mainWindow(JFrame):
   def refreshButtonMouseExited(self, evt):
     self.refreshButton.setBorder(None)
     
+  def subButtonMouseEntered(self, evt):
+    self.subButton.setBorder(border.LineBorder(Color.black))
+    
+  def subButtonMouseExited(self, evt):
+    self.subButton.setBorder(None)
+    
   def refreshButtonMouseClicked(self, evt):
     self.refreshPosts()
+    
+  def subButtonMouseClicked(self, evt):
+    h = self.postTable.getValueAt(self.postTable.getSelectedRow(), 1)
+    print("Collecting posts...")
+    subprocess.call("python3 subPosts.py " + h, shell = True)
+    print("Done!")
+    
+    with open("hotPosts.csv", "r") as f:
+      reader = csv.reader(f)
+      lis = list(reader)
+
+    del postList[:]
+
+    for i in lis:
+      postList.append(post(i[0],
+                           i[1],
+                           i[2],
+                           i[3],
+                           i[4],
+                           i[5]))
+
+    self.postTable.getModel().setRowCount(0)
+
+    for idx, x in enumerate(postList):
+      dt = datetime.utcfromtimestamp(float(x.timePosted))
+      postTime = x.title + " (" + self.pretty_date(dt) + ")"
+      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
       
   def bgPanelMouseDragged(self, evt):
     x = evt.getXOnScreen()
@@ -201,12 +240,11 @@ class mainWindow(JFrame):
                            i[2],
                            i[3],
                            i[4],
-                           i[5]
-                          ))
+                           i[5]))
 
     self.postTable.getModel().setRowCount(0)
 
-    for x in postList:
+    for idx, x in enumerate(postList):
       dt = datetime.utcfromtimestamp(float(x.timePosted))
       postTime = x.title + " (" + self.pretty_date(dt) + ")"
       self.postTable.getModel().addRow([postTime, x.sub, x.postID])
