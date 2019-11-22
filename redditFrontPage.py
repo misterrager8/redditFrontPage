@@ -61,6 +61,7 @@ class mainWindow(JFrame):
     
     self.postTable.getColumnModel().getColumn(0).setPreferredWidth(600)
     self.postTable.getColumnModel().getColumn(1).setPreferredWidth(40)
+    self.postTable.getColumnModel().getColumn(2).setPreferredWidth(40)
     
     self.jScrollPane2.setViewportView(self.postTable)
 
@@ -181,31 +182,31 @@ class mainWindow(JFrame):
     self.refreshPosts()
     
   def subButtonMouseClicked(self, evt):
-    h = self.postTable.getValueAt(self.postTable.getSelectedRow(), 1)
+    selectedSub = self.postTable.getValueAt(self.postTable.getSelectedRow(), 1)
     print("Collecting posts...")
-    subprocess.call("python3 subPosts.py " + h, shell = True)
+    subprocess.call("python3 getPosts.py " + selectedSub, shell = True)
     print("Done!")
     
-    with open("hotPosts.csv", "r") as f:
+    with open("subPosts.csv", "r") as f:
       reader = csv.reader(f)
-      lis = list(reader)
+      tempList = list(reader)
 
     del postList[:]
 
-    for i in lis:
-      postList.append(post(i[0],
-                           i[1],
-                           i[2],
-                           i[3],
-                           i[4],
-                           i[5]))
+    for item in tempList:
+      postList.append(post(item[0],
+                           item[1],
+                           item[2],
+                           item[3],
+                           item[4],
+                           item[5]))
 
     self.postTable.getModel().setRowCount(0)
 
-    for idx, x in enumerate(postList):
-      dt = datetime.utcfromtimestamp(float(x.timePosted))
-      postTime = x.title + " (" + self.pretty_date(dt) + ")"
-      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
+    for idx, item in enumerate(postList):
+      dt = datetime.utcfromtimestamp(float(item.timePosted))
+      postTime = item.title + " (" + self.timeAgo(dt) + ")"
+      self.postTable.getModel().addRow([postTime, item.sub, item.postID])
       
   def bgPanelMouseDragged(self, evt):
     x = evt.getXOnScreen()
@@ -230,33 +231,33 @@ class mainWindow(JFrame):
 
     with open("hotPosts.csv", "r") as f:
       reader = csv.reader(f)
-      lis = list(reader)
+      tempList = list(reader)
 
     del postList[:]
 
-    for i in lis:
-      postList.append(post(i[0],
-                           i[1],
-                           i[2],
-                           i[3],
-                           i[4],
-                           i[5]))
+    for item in tempList:
+      postList.append(post(item[0],
+                           item[1],
+                           item[2],
+                           item[3],
+                           item[4],
+                           item[5]))
 
     self.postTable.getModel().setRowCount(0)
 
-    for idx, x in enumerate(postList):
-      dt = datetime.utcfromtimestamp(float(x.timePosted))
-      postTime = x.title + " (" + self.pretty_date(dt) + ")"
-      self.postTable.getModel().addRow([postTime, x.sub, x.postID])
+    for idx, item in enumerate(postList):
+      dt = datetime.utcfromtimestamp(float(item.timePosted))
+      postTime = item.title + " (" + self.timeAgo(dt) + ")"
+      self.postTable.getModel().addRow([postTime, item.sub, item.postID])
       
     self.timeLabel.setText("Last Refreshed: " + SimpleDateFormat("hh:mm a z").format(Calendar.getInstance().getTime()))
     
   def findPost(self, idPost):
-    for n in postList:
-      if n.postID == idPost:
-        return n
+    for item in postList:
+      if item.postID == idPost:
+        return item
     
-  def pretty_date(self, time=False):
+  def timeAgo(self, time=False):
     now = datetime.utcnow()
     if type(time) is int:
       diff = now - datetime.fromtimestamp(time)
