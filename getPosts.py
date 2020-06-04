@@ -2,11 +2,7 @@ import praw
 import csv
 import sys
 
-reddit = praw.Reddit(client_id='',
-                     client_secret='',
-                     user_agent='',
-                     username='',
-                     password='')
+reddit = praw.Reddit()
 
 results = []
 
