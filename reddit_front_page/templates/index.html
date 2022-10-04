@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros with context %}
+{% block body %}
+<title>RedditFrontPage</title>
+
+<div class="row">
+	<div class="col-2" style="border-right: 1px solid;">
+		{% for i in subs %}
+		<div class="mb-2">
+			<a onclick="getPosts('{{ i.display_name }}')" class="font-custom">{{ i.display_name }}</a>
+		</div>
+		{% endfor %}
+	</div>
+	<div class="col" id="posts"></div>
+</div>
+
+{% endblock %}

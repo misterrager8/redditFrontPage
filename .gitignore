@@ -1,0 +1,5 @@
+.sh
+.env
+*.pyc
+redditFrontPage.egg-info/
+.DS_Store
