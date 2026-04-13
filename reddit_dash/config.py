@@ -1,12 +1,9 @@
 import os
-
 import dotenv
 
 dotenv.load_dotenv()
 
-ENV = os.getenv("env")
-DEBUG = os.getenv("debug").lower() == "true"
-
+PORT = "7734"
 # PRAW config
 CLIENT_ID = os.getenv("client_id")
 USER_AGENT = os.getenv("user_agent")

@@ -1,0 +1,28 @@
+import Icon from "./Icon";
+
+export default function Button({
+  text,
+  type_ = "button",
+  icon,
+  border = true,
+  onClick,
+  className = "",
+  active = false,
+  children,
+}) {
+  return (
+    <button
+      type={type_}
+      className={
+        className +
+        " btn" +
+        (border ? "" : " border-0") +
+        (active ? " active" : "")
+      }
+      onClick={onClick}>
+      {icon && <Icon name={icon} />}
+      {text && <span className={icon ? "ms-2" : ""}>{text}</span>}
+      {children}
+    </button>
+  );
+}
